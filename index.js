@@ -242,9 +242,9 @@ server.connection({
 const classifiedListsCache = server.cache({
   expiresIn: (CACHE_REFRESH_HOURS + 2) * 60 * 1000,// make sure that this can stay around till after the next refresh cycle
   segment: 'classifiedLists',
-  generateFunc: function (type, next) {
+  generateFunc: function (key, next) {
     // pull everything out of cache
-    const keys = SOURCES.map(s => getKey(s, type));
+    const keys = SOURCES.map(s => getKey(s, key.type));
 
     return new Promise((resolve, reject) =>
       client.mget(keys, (err, res) => err ? reject(err) : resolve(res.map(r => r ? JSON.parse(r) : null)))
@@ -255,7 +255,7 @@ const classifiedListsCache = server.cache({
             ? final.concat(r)
             : final,
           [])
-          .filter(r => r && (r.price > 0) && r.calibre && r.calibre !== 'UNKNOWN')
+          .filter(r => r && (r.price > 0) && r.calibre && r.calibre !== 'UNKNOWN' && (key.calibre ? r.calibre === key.calibre.toUpperCase() : true))
           .sort(function (a, b) {
             if (a.price > b.price) {
               return 1
@@ -474,14 +474,22 @@ server.route({
       return reply(boom.badRequest('invalid type: ' + type));
     }
 
-    classifiedListsCache.get(type, (err, res) => {
+    const key = {
+      type,
+      calibre: request.query.calibre,
+      // enable params once pagination is ready on the client side
+      // page: request.query.page || '1',
+      // pageSize: parseInt(request.query.pageSize || '25', 10)
+    }
+
+    classifiedListsCache.get(key, (err, res) => {
       if (err) {
         console.error('ERROR: cache failed', err);
         return reply(boom.serverUnavailable('failed to load items from cache'));
       } else {
         if (res.length === 0) {
           console.warn(`WARN: no cached results for ${type}. dropping the cat box`);
-          classifiedListsCache.drop(type);
+          classifiedListsCache.drop(key);
         }
         return reply(res);
       }
