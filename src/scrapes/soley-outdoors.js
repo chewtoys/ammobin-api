@@ -2,11 +2,13 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const throat = require('throat');
 const helpers = require('../helpers');
+const delay = require('delay')
+
 
 function work(type, page = 1) {
   console.log(`loading solely outdoors ${page}`)
   return axios.get(`https://www.solelyoutdoors.com/ammunition/${type}/page${page}.html`)
-    .then(r => {
+    .then(async r => {
       let $ = cheerio.load(r.data)
       const items = [];
       $('.product').each((index, row) => {
@@ -27,6 +29,8 @@ function work(type, page = 1) {
 
       if ($('.next.enabled').length) {
         $ = null; // dont hold onto page for recursion
+
+        await delay(5500)
         return work(type, page + 1)
           .then(results => items.concat(results));
       } else {
