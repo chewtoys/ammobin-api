@@ -38,7 +38,10 @@ const SOURCES = [
   'gothiclinearmoury.ca',
 ]
 
-const PROXY_URL = 'https://images.ammobin.ca'
+const hidden = process.env.HIDDEN === 'true'
+
+const PROXY_URL = hidden ? '/images' : 'https://images.ammobin.ca'
+const API_URL = hidden ? '/api' : 'https://api.ammobin.ca'
 const DATE_FORMAT = 'YYYY-MM-DD'
 const CACHE_REFRESH_HOURS = 4
 
@@ -46,6 +49,7 @@ module.exports = {
   QUEUE_NAME,
   SOURCES,
   PROXY_URL,
+  API_URL,
   DATE_FORMAT,
   CACHE_REFRESH_HOURS,
 }
