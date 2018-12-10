@@ -1,22 +1,23 @@
-var winston = require("winston");
+var winston = require('winston')
 var config = {
-  host: "fluent",
+  host: 'fluent',
   port: 24224,
   timeout: 3.0,
-  requireAckResponse: true // Add this option to wait response from Fluentd certainly
-};
-var fluentTransport = require("fluent-logger").support.winstonTransport();
+  requireAckResponse: true, // Add this option to wait response from Fluentd certainly
+}
+var fluentTransport = require('fluent-logger').support.winstonTransport()
 
 function createLogger(tag) {
   return winston.createLogger({
     transports: [
-      new fluentTransport(tag, config),
-      new winston.transports.Console()
-    ]
-  });
+      //     new fluentTransport(tag, config),
+      new winston.transports.Console(),
+    ],
+  })
 }
 
 module.exports = {
-  apiLogger: createLogger("ammobin.api"),
-  workerLogger: createLogger("ammobin.worker")
-};
+  apiLogger: createLogger('ammobin.api'),
+  managerLogger: createLogger('ammobin.manager'),
+  workerLogger: createLogger('ammobin.worker'),
+}
